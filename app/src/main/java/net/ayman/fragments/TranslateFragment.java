@@ -1,4 +1,4 @@
-package net.ayman;
+package net.ayman.fragments;
 
 
 import android.content.Intent;
@@ -15,6 +15,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
+
+import net.ayman.R;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -81,8 +84,9 @@ public class TranslateFragment extends Fragment {
                         .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
                 //displaying the first match
-                if (matches != null)
+                if (matches != null) {
                     editTextInput.setText(matches.get(0));
+                }
             }
 
             @Override
@@ -114,5 +118,22 @@ public class TranslateFragment extends Fragment {
                 return false;
             }
         });
+
+        view.findViewById(R.id.buttonTranslate).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                translateToSignLang();
+            }
+        });
+    }
+
+    private void translateToSignLang() {
+        String input = editTextInput.getText().toString().trim();
+
+        if (input.equals("\u0623")) {
+            Toast.makeText(getActivity(), "Text is Alif", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(getActivity(), input, Toast.LENGTH_LONG).show();
+        }
     }
 }
