@@ -16,8 +16,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.VideoView;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import net.ayman.R;
+import net.ayman.helpers.Config;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -25,6 +33,7 @@ import java.util.Locale;
 public class TranslateFragment extends Fragment {
 
     private EditText editTextInput;
+    private VideoView videoView;
 
     @Nullable
     @Override
@@ -37,6 +46,8 @@ public class TranslateFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         editTextInput = view.findViewById(R.id.editTextInput);
+        videoView = view.findViewById(R.id.videoView);
+
         final SpeechRecognizer mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(getActivity());
 
         final Intent mSpeechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -130,10 +141,36 @@ public class TranslateFragment extends Fragment {
     private void translateToSignLang() {
         String input = editTextInput.getText().toString().trim();
 
-        if (input.equals("\u0623")) {
-            Toast.makeText(getActivity(), "Text is Alif", Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(getActivity(), input, Toast.LENGTH_LONG).show();
+        if (input.isEmpty()) {
+            editTextInput.setError("Enter something");
+            editTextInput.requestFocus();
+            return;
         }
+
+        Query query = FirebaseDatabase.getInstance().getReference(Config.NODE_PHRASES).orderByChild("phrase")
+                .equalTo(input.toLowerCase())
+                .limitToFirst(1);
+
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+
+                    for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                        String video = ds.child("sign").getValue(String.class);
+                        videoView.setVideoPath(video);
+                        videoView.start();
+                    }
+
+                } else {
+                    Toast.makeText(getActivity(), "No sign version found", Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 }

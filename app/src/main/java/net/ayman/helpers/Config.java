@@ -7,5 +7,9 @@ public class Config {
 
 
     public static final String NODE_NUMBERS = "numbers";
+    public static final String NODE_ALPHABETS = "alphabets";
+    public static final String NODE_PHRASES = "phrases";
+
+
 
 }
