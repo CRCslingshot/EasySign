@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="net.ayman.activities.MainActivity">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_add_data"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
+        android:title="Add Data"
         app:showAsAction="never" />
 </menu>

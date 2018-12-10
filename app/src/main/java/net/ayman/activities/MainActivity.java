@@ -17,6 +17,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.ProgressBar;
@@ -113,5 +115,19 @@ public class MainActivity extends AppCompatActivity {
         public int getCount() {
             return 3;
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_add_data) {
+            startActivity(new Intent(this, AddDataActivity.class));
+        }
+        return true;
     }
 }
