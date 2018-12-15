@@ -2,6 +2,7 @@ package net.ayman.fragments;
 
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -9,6 +10,8 @@ import android.speech.SpeechRecognizer;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,7 +28,9 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import net.ayman.R;
+import net.ayman.database.DatabaseHelper;
 import net.ayman.helpers.Config;
+import net.ayman.helpers.HelperMethods;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -34,6 +39,7 @@ public class TranslateFragment extends Fragment {
 
     private EditText editTextInput;
     private VideoView videoView;
+    private DatabaseHelper db;
 
     @Nullable
     @Override
@@ -44,6 +50,8 @@ public class TranslateFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        db = new DatabaseHelper(getActivity());
 
         editTextInput = view.findViewById(R.id.editTextInput);
         videoView = view.findViewById(R.id.videoView);
@@ -147,28 +155,24 @@ public class TranslateFragment extends Fragment {
             return;
         }
 
-        Query query = FirebaseDatabase.getInstance().getReference(Config.NODE_PHRASES).orderByChild("phrase")
-                .equalTo(input.toLowerCase())
-                .limitToFirst(1);
+        String uriString = db.getVideo(input);
 
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+        if (uriString == null) {
+            Toast.makeText(getActivity(), "Nothing found on the database", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        byte[] base64Video = Base64.decode(uriString, Base64.DEFAULT);
+        String path = HelperMethods.getVideo(base64Video);
+
+        if (path != null) {
+            videoView.setVideoPath(path);
+            videoView.start();
+        }
+
+        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-
-                    for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                        String video = ds.child("sign").getValue(String.class);
-                        videoView.setVideoPath(video);
-                        videoView.start();
-                    }
-
-                } else {
-                    Toast.makeText(getActivity(), "No sign version found", Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            public void onCompletion(MediaPlayer mp) {
 
             }
         });

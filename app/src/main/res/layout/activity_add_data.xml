@@ -17,6 +17,7 @@
 
 
     <TextView
+        android:id="@+id/textViewFile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
@@ -39,6 +40,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Save" />
+
+    <VideoView
+        android:id="@+id/videoview"
+        android:layout_width="match_parent"
+        android:layout_height="200dp" />
 
 
 </LinearLayout>

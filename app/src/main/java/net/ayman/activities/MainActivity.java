@@ -88,7 +88,16 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             }
+
+            if (!(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)) {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+                finish();
+            }
         }
+
+
     }
 
 

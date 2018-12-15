@@ -6,20 +6,19 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 import android.widget.VideoView;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
 import net.ayman.R;
-import net.ayman.helpers.Config;
+import net.ayman.database.DatabaseHelper;
+import net.ayman.helpers.HelperMethods;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,12 +28,9 @@ public class NumbersFragment extends Fragment {
     private ProgressBar progressBar;
     private VideoView videoView;
     private EditText editTextInput;
-
-
-    private List<String> signVideosList;
-    private List<String> videos = new ArrayList<>();
-
     private int videoIndex = 0;
+    private List<String> videos;
+    private DatabaseHelper db;
 
     @Nullable
     @Override
@@ -46,31 +42,10 @@ public class NumbersFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        db = new DatabaseHelper(getActivity());
+        videos = new ArrayList<>();
         progressBar = view.findViewById(R.id.progressbar);
-        progressBar.setVisibility(View.VISIBLE);
-
-        signVideosList = new ArrayList<>();
-
-        FirebaseDatabase.getInstance().getReference(Config.NODE_NUMBERS)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        progressBar.setVisibility(View.GONE);
-                        if (dataSnapshot.exists()) {
-                            signVideosList.clear();
-                            for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                                signVideosList.add(ds.getValue(String.class));
-                            }
-
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-
+        progressBar.setVisibility(View.GONE);
         editTextInput = view.findViewById(R.id.editTextInput);
         videoView = view.findViewById(R.id.videoView);
 
@@ -81,13 +56,6 @@ public class NumbersFragment extends Fragment {
             }
         });
 
-
-        view.findViewById(R.id.buttonNext).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
 
         view.findViewById(R.id.buttonStop).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -101,8 +69,12 @@ public class NumbersFragment extends Fragment {
             public void onClick(View v) {
                 videoIndex++;
                 if (videoIndex < videos.size()) {
-                    videoView.setVideoPath(videos.get(videoIndex));
-                    videoView.start();
+                    byte[] base64Video = Base64.decode(videos.get(videoIndex), Base64.DEFAULT);
+                    String path = HelperMethods.getVideo(base64Video);
+                    if (path != null) {
+                        videoView.setVideoPath(path);
+                        videoView.start();
+                    }
                 }
             }
         });
@@ -121,25 +93,46 @@ public class NumbersFragment extends Fragment {
         videos.clear();
 
         for (int i = 0; i < input.length(); i++) {
-            videos.add(signVideosList.get(Integer.parseInt(String.valueOf(input.charAt(i)))));
+            String num = String.valueOf(input.charAt(i));
+            String uriString = db.getVideo(num);
+            if (uriString != null) {
+                videos.add(uriString);
+            }
         }
 
         videoIndex = 0;
 
-        videoView.setVideoPath(videos.get(0));
-        videoView.start();
+        if (videos.size() <= 0) {
+            Toast.makeText(getActivity(), "Nothing found on the database", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        byte[] base64Video = Base64.decode(videos.get(0), Base64.DEFAULT);
+        String path = HelperMethods.getVideo(base64Video);
+
+        if (path != null) {
+            videoView.setVideoPath(path);
+            Log.d("NumbersFragment", videos.get(0));
+            videoView.start();
+        }
 
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
+                videoIndex++;
                 if (videoIndex < videos.size()) {
-                    videoIndex++;
-                    videoView.setVideoPath(videos.get(videoIndex));
-                    videoView.start();
+                    byte[] base64Video = Base64.decode(videos.get(videoIndex), Base64.DEFAULT);
+                    String path = HelperMethods.getVideo(base64Video);
+                    if (path != null) {
+                        videoView.setVideoPath(path);
+                        videoView.start();
+                    }
                 }
             }
         });
 
 
     }
+
+
 }

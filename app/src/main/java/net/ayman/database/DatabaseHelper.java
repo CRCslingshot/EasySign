@@ -5,19 +5,16 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.annotation.Nullable;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
 
     public static final String DB_NAME = "AymanSignsApp";
-    public static final String TABLE_NAME = "Signs";
+    public static final String TABLE_NAME = "VideoData";
     public static final String COLUMN_ID = "id";
-    public static final String COLUMN_PHRASE_ENGLISH = "phrase_english";
-    public static final String COLUMN_PHRASE_ARABIC = "phrase_arabic";
-    public static final String COLUMN_LETTER = "letter";
-    public static final String COLUMN_NUMBER = "number";
-    public static final String COLUMN_SIGN = "sign";
+    public static final String COLUMN_VIDEO = "video";
+    public static final String COLUMN_TYPE = "type";
+    public static final String COLUMN_VALUE = "value";
 
     public static final int DB_VERSION = 1;
 
@@ -28,11 +25,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String sql = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (\n" +
-                "    " + COLUMN_ID + " INTEGER NOT NULL CONSTRAINT employees_pk PRIMARY KEY AUTOINCREMENT,\n" +
-                "    " + COLUMN_PHRASE_ENGLISH + " varchar(255) NOT NULL,\n" +
-                "    " + COLUMN_PHRASE_ARABIC + " varchar(255) NOT NULL,\n" +
-                "    " + COLUMN_SIGN + " varchar(255) NOT NULL " +
+        String sql = "CREATE TABLE " + TABLE_NAME + " (\n" +
+                "    " + COLUMN_ID + " integer NOT NULL CONSTRAINT FoodItems_pk PRIMARY KEY AUTOINCREMENT,\n" +
+                "    " + COLUMN_VIDEO + " blob NOT NULL,\n" +
+                "    " + COLUMN_TYPE + " varchar(255) NOT NULL,\n" +
+                "    " + COLUMN_VALUE + " varchar(255) NOT NULL\n" +
                 ");";
         db.execSQL(sql);
     }
@@ -44,14 +41,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    private boolean isDataAlreadySaved() {
+    private boolean isDataAlreadySaved(String value) {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_VALUE + " = " + value + ";", null);
         return cursor.moveToFirst();
     }
 
-    private void savePhrases() {
+    public boolean saveData(String uri, String type, String value) {
+        if (isDataAlreadySaved(value)) {
+            return false;
+        }
 
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_VIDEO, uri);
+        contentValues.put(COLUMN_TYPE, type);
+        contentValues.put(COLUMN_VALUE, value);
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.insert(TABLE_NAME, null, contentValues);
+
+        return true;
+    }
+
+    public String getVideo(String alphabet) {
+        SQLiteDatabase db = getReadableDatabase();
+        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_VALUE + " = ? ;";
+        Cursor cursor = db.rawQuery(sql, new String[]{alphabet});
+
+        if (cursor.moveToFirst()) {
+            return cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO));
+        }
+        return null;
     }
 
 }
