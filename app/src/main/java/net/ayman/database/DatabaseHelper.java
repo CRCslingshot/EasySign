@@ -41,14 +41,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    private boolean isDataAlreadySaved(String value) {
+    private boolean isDataAlreadySaved(String value, String type) {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_VALUE + " = " + value + ";", null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_VALUE + " = ? AND " + COLUMN_TYPE + " = ?;", new String[]{value, type});
         return cursor.moveToFirst();
     }
 
     public boolean saveData(String uri, String type, String value) {
-        if (isDataAlreadySaved(value)) {
+        if (isDataAlreadySaved(value, type)) {
             return false;
         }
 
@@ -63,10 +63,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return true;
     }
 
-    public String getVideo(String alphabet) {
+    public String getVideo(String alphabet, String type) {
         SQLiteDatabase db = getReadableDatabase();
-        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_VALUE + " = ? ;";
-        Cursor cursor = db.rawQuery(sql, new String[]{alphabet});
+        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + COLUMN_VALUE + " = ? AND " + COLUMN_TYPE + " = ? ;";
+        Cursor cursor = db.rawQuery(sql, new String[]{alphabet, type});
 
         if (cursor.moveToFirst()) {
             return cursor.getString(cursor.getColumnIndex(COLUMN_VIDEO));

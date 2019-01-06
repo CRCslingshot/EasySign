@@ -1,8 +1,9 @@
 package net.ayman.activities;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -10,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,13 +21,8 @@ import net.ayman.R;
 import net.ayman.database.DatabaseHelper;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class AddDataActivity extends AppCompatActivity {
 
@@ -36,6 +33,7 @@ public class AddDataActivity extends AppCompatActivity {
     private Uri videoUri;
     private TextView textViewFile;
     private DatabaseHelper db;
+    private ImageView imageView;
 
     private VideoView videoView;
 
@@ -52,6 +50,7 @@ public class AddDataActivity extends AppCompatActivity {
         editTextInput = findViewById(R.id.input);
         textViewFile = findViewById(R.id.textViewFile);
         videoView = findViewById(R.id.videoview);
+        imageView = findViewById(R.id.imageView);
 
 
         buttonSave.setOnClickListener(new View.OnClickListener() {
@@ -70,7 +69,7 @@ public class AddDataActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 Intent mediaChooser = new Intent(Intent.ACTION_GET_CONTENT);
-                mediaChooser.setType("video/*, image/*");
+                mediaChooser.setType("*/*");
                 startActivityForResult(mediaChooser, 101);
 
             }
@@ -100,8 +99,15 @@ public class AddDataActivity extends AppCompatActivity {
 
         if (db.saveData(encoded, type, input)) {
             String s = videoUri.toString();
-            videoView.setVideoURI(Uri.parse(s));
-            videoView.start();
+
+            if (spinnerType.getSelectedItem().toString().equalsIgnoreCase("Alphabet")) {
+                Bitmap bmp = MediaStore.Images.Media.getBitmap(getContentResolver(), videoUri);
+                imageView.setImageBitmap(bmp);
+            } else {
+                videoView.setVideoURI(Uri.parse(s));
+                videoView.start();
+            }
+
             Toast.makeText(this, "Data Saved", Toast.LENGTH_LONG).show();
 
             Log.d("AddDataActivity", videoUri.toString());
@@ -109,9 +115,6 @@ public class AddDataActivity extends AppCompatActivity {
             Toast.makeText(this, "Data already saved", Toast.LENGTH_LONG).show();
 
     }
-
-
-
 
 
     public byte[] getBytes(InputStream inputStream) throws IOException {

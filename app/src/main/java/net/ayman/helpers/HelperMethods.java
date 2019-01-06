@@ -2,8 +2,11 @@ package net.ayman.helpers;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
+import android.util.Base64;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,5 +37,10 @@ public class HelperMethods {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static Bitmap getBitmap(String bitmap) {
+        byte[] decodedString = Base64.decode(bitmap, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
     }
 }

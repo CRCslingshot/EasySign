@@ -43,26 +43,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
 
-        progressBar = findViewById(R.id.progressbar);
-        progressBar.setVisibility(View.VISIBLE);
-
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(
-                Config.USER_EMAIL,
-                Config.USER_PASSWORD
-        ).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                progressBar.setVisibility(View.GONE);
-                if (!task.isSuccessful()) {
-                    finish();
-                }
-            }
-        });
 
 
+
+        userAgreed();
+
+    }
+
+    private void userAgreed(){
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -78,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
 
         checkPermission();
+
     }
 
     private void checkPermission() {

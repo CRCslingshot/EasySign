@@ -16,30 +16,27 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import android.widget.VideoView;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
-
 import net.ayman.R;
 import net.ayman.database.DatabaseHelper;
-import net.ayman.helpers.Config;
 import net.ayman.helpers.HelperMethods;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.StringTokenizer;
 
 public class TranslateFragment extends Fragment {
 
     private EditText editTextInput;
     private VideoView videoView;
     private DatabaseHelper db;
+
+    private int videoIndex = 0;
+    private List<String> videos;
 
     @Nullable
     @Override
@@ -50,6 +47,8 @@ public class TranslateFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        videos = new ArrayList<>();
 
         db = new DatabaseHelper(getActivity());
 
@@ -146,34 +145,58 @@ public class TranslateFragment extends Fragment {
         });
     }
 
-    private void translateToSignLang() {
+
+    private void translateToSignLang(){
         String input = editTextInput.getText().toString().trim();
 
         if (input.isEmpty()) {
-            editTextInput.setError("Enter something");
+            editTextInput.setError("Enter a number");
             editTextInput.requestFocus();
             return;
         }
 
-        String uriString = db.getVideo(input);
 
-        if (uriString == null) {
+        videos.clear();
+
+        StringTokenizer st = new StringTokenizer(input, " ");
+
+        while(st.hasMoreTokens()){
+            String word = st.nextToken();
+            String uriString = db.getVideo(word, "Phrase");
+            if (uriString != null) {
+                videos.add(uriString);
+            }
+        }
+
+
+        videoIndex = 0;
+
+        if (videos.size() <= 0) {
             Toast.makeText(getActivity(), "Nothing found on the database", Toast.LENGTH_LONG).show();
             return;
         }
 
-        byte[] base64Video = Base64.decode(uriString, Base64.DEFAULT);
+        byte[] base64Video = Base64.decode(videos.get(0), Base64.DEFAULT);
         String path = HelperMethods.getVideo(base64Video);
 
         if (path != null) {
             videoView.setVideoPath(path);
+            Log.d("NumbersFragment", videos.get(0));
             videoView.start();
         }
 
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-
+                videoIndex++;
+                if (videoIndex < videos.size()) {
+                    byte[] base64Video = Base64.decode(videos.get(videoIndex), Base64.DEFAULT);
+                    String path = HelperMethods.getVideo(base64Video);
+                    if (path != null) {
+                        videoView.setVideoPath(path);
+                        videoView.start();
+                    }
+                }
             }
         });
     }

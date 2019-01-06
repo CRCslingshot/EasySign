@@ -94,7 +94,7 @@ public class NumbersFragment extends Fragment {
 
         for (int i = 0; i < input.length(); i++) {
             String num = String.valueOf(input.charAt(i));
-            String uriString = db.getVideo(num);
+            String uriString = db.getVideo(num, "Number");
             if (uriString != null) {
                 videos.add(uriString);
             }
